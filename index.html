@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PIRATE ADVENTURE: MISSION DATA SECURITY</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Fredoka & Nunito -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Konfigurasi Warna Kustom Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navyDark: '#0a192f',
+                        seaBlue: '#114b72',
+                        oceanLight: '#1e7898',
+                        pirateBrown: '#5c3a21',
+                        woodLight: '#8c5832',
+                        parchment: '#f7ebd2',
+                        parchmentDark: '#e6d2a8',
+                        pirateGold: '#f5b700',
+                        goldShine: '#ffe066',
+                        pirateBlack: '#121417'
+                    },
+                    fontFamily: {
+                        heading: ['Fredoka', 'sans-serif'],
+                        body: ['Nunito', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #0a192f;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, .font-pirate {
+            font-family: 'Fredoka', sans-serif;
+        }
+
+        /* Animasi Kapal Bergoyang di Ombak */
+        @keyframes shipRock {
+            0%, 100% { transform: rotate(-3deg) translateY(0px); }
+            50% { transform: rotate(3deg) translateY(-7px); }
+        }
+        .animate-ship {
+            animation: shipRock 4s ease-in-out infinite;
+            transform-origin: bottom center;
+        }
+
+        /* Animasi Ombak Berjalan */
+        @keyframes waveMove {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(-20px); }
+            100% { transform: translateX(0); }
+        }
+        .animate-wave {
+            animation: waveMove 5s ease-in-out infinite;
+        }
+
+        /* Animasi Koin Emas Berkilau */
+        @keyframes coinShine {
+            0%, 100% { filter: drop-shadow(0 0 4px #f5b700); transform: scale(1); }
+            50% { filter: drop-shadow(0 0 14px #ffe066); transform: scale(1.07); }
+        }
+        .animate-gold {
+            animation: coinShine 2.5s infinite;
+        }
+
+        /* Animasi Kompas Berputar Pelan */
+        @keyframes compassSpin {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(15deg); }
+            75% { transform: rotate(-15deg); }
+        }
+        .animate-compass {
+            animation: compassSpin 6s ease-in-out infinite;
+        }
+
+        /* Gaya Kertas Perkamen Peta Harta Karun */
+        .parchment-card {
+            background: linear-gradient(135deg, #f7ebd2 0%, #ebd7b0 100%);
+            color: #2b180a;
+            border: 4px solid #8c5832;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(140, 88, 50, 0.25);
+        }
+
+        /* Gaya Tombol Kayu & Emas Bajak Laut */
+        .btn-pirate {
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 4px 0 #78461e;
+        }
+        .btn-pirate:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 0 #78461e;
+        }
+        .btn-pirate:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #78461e;
+        }
+
+        /* Efek Getar saat Jawaban Salah */
+        @keyframes shakeHard {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+        .shake-error {
+            animation: shakeHard 0.45s ease-in-out;
+        }
+
+        /* Drag and Drop Styling */
+        .draggable-item {
+            cursor: grab;
+            user-select: none;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .draggable-item:active {
+            cursor: grabbing;
+            transform: scale(1.04);
+        }
+        .drop-zone {
+            transition: all 0.2s ease;
+        }
+        .drop-zone.drag-over {
+            background-color: rgba(245, 183, 0, 0.35);
+            border-color: #f5b700;
+            transform: scale(1.01);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-gradient-to-b from-navyDark via-seaBlue to-navyDark">
+
+    <!-- =================================================================
+         HEADER & NAVIGASI UTAMA (SPA TABS + GLOBAL KOIN & PROGRES)
+         ================================================================= -->
+    <header class="bg-pirateBlack/95 border-b-4 border-pirateGold sticky top-0 z-50 shadow-2xl backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5">
+            <div class="flex flex-col xl:flex-row items-center justify-between gap-3">
+                <!-- Logo & Status Global -->
+                <div class="flex items-center justify-between w-full xl:w-auto gap-3">
+                    <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('home')">
+                        <div class="w-11 h-11 rounded-full bg-pirateGold flex items-center justify-center text-pirateBlack text-2xl shadow-md animate-compass flex-shrink-0">
+                            <i class="fa-solid fa-compass"></i>
+                        </div>
+                        <div>
+                            <span class="text-[11px] uppercase tracking-wider text-pirateGold font-bold block">Informatika SMP Kelas 7 • Fase D</span>
+                            <h1 class="text-lg sm:text-xl font-bold text-white leading-tight">PIRATE ADVENTURE</h1>
+                        </div>
+                    </div>
+
+                    <!-- Indikator Koin Emas Global di Header -->
+                    <div class="flex items-center gap-2 bg-navyDark border-2 border-pirateGold px-3 py-1.5 rounded-full shadow">
+                        <i class="fa-solid fa-coins text-pirateGold animate-gold text-lg"></i>
+                        <span class="font-extrabold text-goldShine text-sm sm:text-base"><span id="global-coins">0</span> Koin</span>
+                    </div>
+                </div>
+
+                <!-- 7 Menu Navigasi Utama -->
+                <nav class="flex flex-wrap justify-center gap-1.5" id="nav-menu">
+                    <button onclick="switchTab('home')" data-tab="home" class="nav-btn active bg-pirateGold text-pirateBlack font-bold px-3 py-1.5 rounded-xl text-sm flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-ship"></i> <span>Home</span>
+                    </button>
+                    <button onclick="switchTab('tujuan')" data-tab="tujuan" class="nav-btn bg-seaBlue/80 hover:bg-seaBlue text-white font-semibold px-3 py-1.5 rounded-xl text-sm flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-map-location-dot"></i> <span>Tujuan Pembelajaran</span>
+                    </button>
+                    <button onclick="switchTab('materi')" data-tab="materi" class="nav-btn bg-seaBlue/80 hover:bg-seaBlue text-white font-semibold px-3 py-1.5 rounded-xl text-sm flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-scroll"></i> <span>Materi</span>
+                    </button>
+                    <button onclick="switchTab('kuis')" data-tab="kuis" class="nav-btn bg-seaBlue/80 hover:bg-seaBlue text-white font-semibold px-3 py-1.5 rounded-xl text-sm flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-gem"></i> <span>Kuis Interaktif</span>
+                    </button>
+                    <button onclick="switchTab('dragdrop')" data-tab="dragdrop" class="nav-btn bg-seaBlue/80 hover:bg-seaBlue text-white font-semibold px-3 py-1.5 rounded-xl text-sm flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-puzzle-piece"></i> <span>Drag & Drop</span>
+                    </button>
+                    <button onclick="switchTab('tantangan')" data-tab="tantangan" class="nav-btn bg-red-800/90 hover:bg-red-700 text-goldShine font-bold px-3 py-1.5 rounded-xl text-sm flex items-center gap-1.5 border border-pirateGold/60 transition">
+                        <i class="fa-solid fa-skull-crossbones"></i> <span>Pirate Cipher Challenge</span>
+                    </button>
+                    <button onclick="switchTab('tentang')" data-tab="tentang" class="nav-btn bg-seaBlue/80 hover:bg-seaBlue text-white font-semibold px-3 py-1.5 rounded-xl text-sm flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-anchor"></i> <span>Tentang</span>
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- KONTEN UTAMA -->
+    <main class="flex-grow max-w-6xl w-full mx-auto px-4 py-6 sm:py-8">
+
+        <!-- =================================================================
+             A. HOME (HALAMAN UTAMA)
+             ================================================================= -->
+        <section id="tab-home" class="tab-content block">
+            <div class="parchment-card rounded-3xl p-6 sm:p-10 relative overflow-hidden">
+                <i class="fa-regular fa-compass text-9xl text-pirateBrown/10 absolute -top-6 -right-6 pointer-events-none"></i>
+
+                <!-- Bar Indikator Progres Misi & Koin Emas -->
+                <div class="bg-navyDark text-white rounded-2xl p-4 mb-8 border-2 border-pirateGold shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-xl bg-pirateGold/20 border border-pirateGold flex items-center justify-center text-2xl text-pirateGold animate-gold">
+                            <i class="fa-solid fa-coins"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs uppercase text-gray-300 font-bold block">Harta Koin Terkumpul</span>
+                            <span class="text-xl sm:text-2xl font-extrabold text-pirateGold"><span id="home-coins">0</span> Koin Emas</span>
+                        </div>
+                    </div>
+
+                    <div class="w-full sm:w-1/2">
+                        <div class="flex justify-between text-xs sm:text-sm font-bold mb-1">
+                            <span class="text-sky-300"><i class="fa-solid fa-flag-checkered mr-1"></i> Progres Penyelesaian Misi</span>
+                            <span class="text-pirateGold" id="home-progress-text">0%</span>
+                        </div>
+                        <div class="w-full bg-pirateBlack h-4 rounded-full overflow-hidden border border-oceanLight">
+                            <div id="home-progress-bar" class="bg-gradient-to-r from-pirateGold to-yellow-300 h-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                    <!-- Kolom Kiri: Judul, Subjudul, Pemandu Bajak Laut & Tombol Mulai -->
+                    <div class="lg:col-span-7 space-y-5">
+                        <div class="inline-flex items-center gap-2 bg-pirateBrown text-goldShine px-4 py-1.5 rounded-full text-sm font-bold shadow">
+                            <i class="fa-solid fa-shield-halved"></i> Proteksi Data dan File • Caesar's Cipher
+                        </div>
+
+                        <h2 class="text-3xl sm:text-5xl font-extrabold text-pirateBlack leading-tight">
+                            PIRATE ADVENTURE: <span class="text-seaBlue block sm:inline">MISSION DATA SECURITY</span>
+                        </h2>
+
+                        <h3 class="text-xl sm:text-2xl font-bold text-pirateBrown">
+                            Petualangan Menjelajahi Dunia Enkripsi dan Dekripsi.
+                        </h3>
+
+                        <!-- Karakter Pemandu Bajak Laut -->
+                        <div class="bg-white/85 border-l-8 border-pirateGold rounded-2xl p-4 flex items-center gap-4 shadow-sm">
+                            <!-- Avatar SVG Kapten Pemandu -->
+                            <svg viewBox="0 0 80 80" class="w-16 h-16 flex-shrink-0">
+                                <circle cx="40" cy="40" r="38" fill="#114b72" stroke="#f5b700" stroke-width="3"/>
+                                <!-- Wajah -->
+                                <circle cx="40" cy="44" r="18" fill="#fed7aa"/>
+                                <!-- Topi Kapten -->
+                                <path d="M16 32 Q40 12 64 32 L58 36 L22 36 Z" fill="#121417"/>
+                                <circle cx="40" cy="25" r="4" fill="#f5b700"/>
+                                <!-- Penutup Mata & Mata -->
+                                <circle cx="33" cy="42" r="4" fill="#121417"/>
+                                <line x1="22" y1="36" x2="42" y2="45" stroke="#121417" stroke-width="2"/>
+                                <circle cx="47" cy="42" r="2.5" fill="#121417"/>
+                                <!-- Senyum & Jenggot -->
+                                <path d="M34 52 Q40 57 46 52" stroke="#5c3a21" stroke-width="2.5" fill="none"/>
+                            </svg>
+                            <div>
+                                <span class="text-xs font-extrabold uppercase text-seaBlue block"><i class="fa-solid fa-comment-dots"></i> Kapten Leo (Pemandu Misi):</span>
+                                <p class="text-base sm:text-lg text-pirateBlack font-bold leading-snug">
+                                    "Jadilah kapten bajak laut dan selesaikan berbagai misi untuk menemukan rahasia keamanan data digital!"
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="pt-2">
+                            <button onclick="switchTab('tujuan')" class="btn-pirate bg-pirateGold hover:bg-yellow-400 text-pirateBlack font-extrabold text-lg sm:text-xl px-8 py-4 rounded-2xl inline-flex items-center gap-3">
+                                <i class="fa-solid fa-compass text-2xl"></i> MULAI PETUALANGAN
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Kolom Kanan: Ilustrasi Kapal Bajak Laut, Peta Harta Karun & Peti Emas -->
+                    <div class="lg:col-span-5 bg-oceanLight/20 rounded-3xl p-4 border-2 border-woodLight/40 flex flex-col items-center">
+                        <svg viewBox="0 0 380 280" class="w-full max-w-md h-auto drop-shadow-xl">
+                            <!-- Langit & Matahari -->
+                            <circle cx="315" cy="52" r="28" fill="#f5b700" opacity="0.9"/>
+                            
+                            <!-- Pulau Harta Karun di Kanan -->
+                            <path d="M240 215 Q295 165 365 215 Z" fill="#e6d2a8" stroke="#8c5832" stroke-width="2"/>
+                            <!-- Pohon Kelapa -->
+                            <path d="M325 185 Q332 150 320 125" stroke="#5c3a21" stroke-width="5" fill="none"/>
+                            <path d="M320 125 Q300 120 292 135 M320 125 Q340 118 348 134 M320 125 Q315 105 332 108" stroke="#15803d" stroke-width="4" fill="none"/>
+                            
+                            <!-- Peti Emas Berkilau di Pulau -->
+                            <g class="animate-gold">
+                                <rect x="275" y="178" width="34" height="22" rx="3" fill="#8c5832" stroke="#2b180a" stroke-width="2"/>
+                                <path d="M275 184 L309 184" stroke="#f5b700" stroke-width="3"/>
+                                <circle cx="292" cy="186" r="3.5" fill="#ffe066"/>
+                            </g>
+
+                            <!-- Kapal Bajak Laut Bergoyang -->
+                            <g class="animate-ship">
+                                <rect x="115" y="55" width="7" height="120" fill="#4a2c11"/>
+                                <path d="M122 55 L158 64 L122 75 Z" fill="#121417"/>
+                                <circle cx="134" cy="65" r="3.5" fill="#f5b700"/>
+                                <!-- Layar -->
+                                <path d="M113 80 Q65 115 113 152 Z" fill="#ffffff" stroke="#8c5832" stroke-width="2.5"/>
+                                <path d="M124 82 Q170 115 124 150 Z" fill="#f7ebd2" stroke="#8c5832" stroke-width="2.5"/>
+                                <!-- Lambung Kapal -->
+                                <path d="M45 162 L195 162 L175 205 L65 205 Z" fill="#5c3a21" stroke="#2b180a" stroke-width="2.5"/>
+                                <path d="M54 174 L186 174" stroke="#f5b700" stroke-width="3.5" stroke-dasharray="8,6"/>
+                            </g>
+
+                            <!-- Ombak Laut -->
+                            <g class="animate-wave">
+                                <path d="M0 205 Q45 192 90 205 T180 205 T270 205 T380 205 L380 280 L0 280 Z" fill="#114b72"/>
+                                <path d="M-20 226 Q35 212 85 226 T185 226 T285 226 T400 226 L400 280 L-20 280 Z" fill="#1e7898" opacity="0.85"/>
+                            </g>
+                        </svg>
+                        <div class="flex items-center justify-center gap-4 mt-2 text-sm font-bold text-pirateBrown">
+                            <span><i class="fa-solid fa-ship text-seaBlue"></i> Kapal Sandi</span>
+                            <span><i class="fa-solid fa-map text-pirateBrown"></i> Peta Rahasia</span>
+                            <span><i class="fa-solid fa-box-open text-amber-600"></i> Peti Emas</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =================================================================
+             B. TUJUAN PEMBELAJARAN (PAPAN MISI & INDIKATOR PENYELESAIAN)
+             ================================================================= -->
+        <section id="tab-tujuan" class="tab-content hidden">
+            <div class="parchment-card rounded-3xl p-6 sm:p-10">
+                <div class="flex flex-wrap items-center justify-between gap-4 border-b-2 border-woodLight/40 pb-4 mb-6">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-map-location-dot text-3xl sm:text-4xl text-seaBlue"></i>
+                        <div>
+                            <span class="text-sm font-bold text-pirateBrown uppercase">Papan Misi Pelayaran • Fase D SMP</span>
+                            <h2 class="text-2xl sm:text-4xl font-bold text-pirateBlack">Tujuan Pembelajaran</h2>
+                        </div>
+                    </div>
+                    <div class="bg-navyDark text-pirateGold px-4 py-2 rounded-xl font-bold text-sm sm:text-base">
+                        Misi Tercapai: <span id="objectives-done-count">0</span> / 7
+                    </div>
+                </div>
+
+                <p class="text-lg font-bold text-pirateBrown mb-6">
+                    Setelah mengikuti pembelajaran, siswa diharapkan mampu menyelesaikan 7 target misi berikut (klik kotak ceklis jika kamu sudah menguasainya!):
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="objectives-list">
+                    <!-- Dirender otomatis via JavaScript -->
+                </div>
+
+                <div class="mt-8 flex justify-end">
+                    <button onclick="switchTab('materi')" class="btn-pirate bg-seaBlue hover:bg-oceanLight text-white font-bold px-6 py-3 rounded-2xl text-lg flex items-center gap-2">
+                        Lanjut ke Gulungan Materi <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- =================================================================
+             C. MATERI PEMBELAJARAN (6 SUBBAB INTERAKTIF + COBA SENDIRI)
+             ================================================================= -->
+        <section id="tab-materi" class="tab-content hidden">
+            <div class="parchment-card rounded-3xl p-6 sm:p-10">
+                <!-- Header Materi -->
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b-2 border-woodLight/40 pb-4 mb-6">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-scroll text-3xl sm:text-4xl text-pirateBrown"></i>
+                        <div>
+                            <span class="text-sm font-bold text-pirateBrown uppercase">Sumber: Proteksi Data dan File</span>
+                            <h2 class="text-2xl sm:text-3xl font-bold text-pirateBlack">Peta Materi Petualangan</h2>
+                        </div>
+                    </div>
+                    <span class="bg-pirateBrown text-goldShine px-3 py-1.5 rounded-xl font-bold text-sm">
+                        Subbab <span id="subbab-indicator">Daftar</span>
+                    </span>
+                </div>
+
+                <!-- TAMPILAN 0: DAFTAR 6 SUBBAB MATERI -->
+                <div id="materi-menu-view">
+                    <p class="text-lg font-semibold text-pirateBrown mb-5">
+                        Pilih gulungan subbab di bawah ini untuk mempelajari rahasia <strong>Proteksi Data dan File</strong> serta sandi <strong>Caesar's Cipher</strong>:
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <button onclick="openSubbab(1)" class="text-left bg-white/85 hover:bg-goldShine/40 p-5 rounded-2xl border-2 border-woodLight transition shadow-sm flex flex-col justify-between gap-3">
+                            <div class="flex items-center justify-between">
+                                <span class="bg-seaBlue text-white font-bold px-3 py-1 rounded-lg text-sm">Subbab 1</span>
+                                <i class="fa-solid fa-shield-halved text-2xl text-seaBlue"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-pirateBlack">Pentingnya Proteksi Data</h3>
+                            <p class="text-sm text-pirateBrown">Risiko kehilangan data, pencurian jaringan, dan kasus flashdisk hilang.</p>
+                        </button>
+
+                        <button onclick="openSubbab(2)" class="text-left bg-white/85 hover:bg-goldShine/40 p-5 rounded-2xl border-2 border-woodLight transition shadow-sm flex flex-col justify-between gap-3">
+                            <div class="flex items-center justify-between">
+                                <span class="bg-seaBlue text-white font-bold px-3 py-1 rounded-lg text-sm">Subbab 2</span>
+                                <i class="fa-solid fa-lock text-2xl text-pirateGold"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-pirateBlack">Pengertian Enkripsi & Dekripsi</h3>
+                            <p class="text-sm text-pirateBrown">Asal kata "kryptos", alur Teks Asli ke Teks Rahasia, dan contoh pesan.</p>
+                        </button>
+
+                        <button onclick="openSubbab(3)" class="text-left bg-white/85 hover:bg-goldShine/40 p-5 rounded-2xl border-2 border-woodLight transition shadow-sm flex flex-col justify-between gap-3">
+                            <div class="flex items-center justify-between">
+                                <span class="bg-seaBlue text-white font-bold px-3 py-1 rounded-lg text-sm">Subbab 3</span>
+                                <i class="fa-solid fa-globe text-2xl text-oceanLight"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-pirateBlack">Fungsi Enkripsi Sehari-hari</h3>
+                            <p class="text-sm text-pirateBrown">E-commerce, aplikasi chat, e-banking, hingga penyimpanan flashdisk.</p>
+                        </button>
+
+                        <button onclick="openSubbab(4)" class="text-left bg-white/85 hover:bg-goldShine/40 p-5 rounded-2xl border-2 border-woodLight transition shadow-sm flex flex-col justify-between gap-3">
+                            <div class="flex items-center justify-between">
+                                <span class="bg-seaBlue text-white font-bold px-3 py-1 rounded-lg text-sm">Subbab 4</span>
+                                <i class="fa-solid fa-key text-2xl text-pirateBrown"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-pirateBlack">Cara Kerja Enkripsi</h3>
+                            <p class="text-sm text-pirateBrown">Aturan pengacakan, Cryptographic Key, dan alur pengirim ke penerima.</p>
+                        </button>
+
+                        <button onclick="openSubbab(5)" class="text-left bg-white/85 hover:bg-goldShine/40 p-5 rounded-2xl border-2 border-woodLight transition shadow-sm flex flex-col justify-between gap-3">
+                            <div class="flex items-center justify-between">
+                                <span class="bg-seaBlue text-white font-bold px-3 py-1 rounded-lg text-sm">Subbab 5</span>
+                                <i class="fa-solid fa-arrow-right-arrow-left text-2xl text-seaBlue"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-pirateBlack">Pengenalan Caesar's Cipher</h3>
+                            <p class="text-sm text-pirateBrown">Konsep geser alfabet A–Z, perputaran huruf Z ke A, dan contoh kalimat.</p>
+                        </button>
+
+                        <button onclick="openSubbab(6)" class="text-left bg-white/85 hover:bg-goldShine/40 p-5 rounded-2xl border-2 border-woodLight transition shadow-sm flex flex-col justify-between gap-3">
+                            <div class="flex items-center justify-between">
+                                <span class="bg-pirateGold text-pirateBlack font-bold px-3 py-1 rounded-lg text-sm">Subbab 6 + Praktik</span>
+                                <i class="fa-solid fa-gears text-2xl text-pirateBlack"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-pirateBlack">Enkripsi & Dekripsi Caesar's Cipher</h3>
+                            <p class="text-sm text-pirateBrown">Geser kanan & kiri, contoh kata STRADA, dan tombol Coba Sendiri!</p>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TAMPILAN KONTEN SUBBAB 1 - 6 -->
+                <div id="materi-detail-view" class="hidden space-y-6">
+                    <div id="materi-body" class="text-lg text-pirateBlack leading-relaxed space-y-4">
+                        <!-- Konten subbab dirender di sini -->
+                    </div>
+
+                    <!-- Simulator Interaktif Khusus Subbab 6 (Muncul saat tombol COBA SENDIRI diklik) -->
+                    <div id="subbab6-simulator" class="hidden bg-navyDark border-4 border-pirateGold rounded-2xl p-5 sm:p-6 text-white shadow-xl space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xl sm:text-2xl font-bold text-pirateGold"><i class="fa-solid fa-flask"></i> Mesin Praktik Caesar's Cipher</h4>
+                            <span class="text-xs bg-seaBlue px-3 py-1 rounded-full font-bold">Alfabet A–Z</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                            <div class="md:col-span-5">
+                                <label class="block text-sm font-bold text-pirateGold mb-1">Teks Input (Huruf A-Z):</label>
+                                <input type="text" id="sim-input" value="STRADA" class="w-full px-4 py-2.5 rounded-xl bg-parchment text-pirateBlack font-bold text-lg uppercase border-2 border-pirateGold">
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-sm font-bold text-pirateGold mb-1">Kunci Pergeseran:</label>
+                                <input type="number" id="sim-key" value="2" min="1" max="25" class="w-full px-4 py-2.5 rounded-xl bg-parchment text-pirateBlack font-bold text-lg text-center border-2 border-pirateGold">
+                            </div>
+                            <div class="md:col-span-4 flex gap-2">
+                                <button onclick="runMateriSimulator('encrypt')" class="btn-pirate flex-1 bg-pirateGold text-pirateBlack font-extrabold py-2.5 px-3 rounded-xl text-sm sm:text-base">
+                                    <i class="fa-solid fa-lock"></i> Enkripsi (Kanan)
+                                </button>
+                                <button onclick="runMateriSimulator('decrypt')" class="btn-pirate flex-1 bg-oceanLight text-white font-extrabold py-2.5 px-3 rounded-xl text-sm sm:text-base">
+                                    <i class="fa-solid fa-unlock"></i> Dekripsi (Kiri)
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-pirateBlack p-4 rounded-xl border border-woodLight">
+                            <span id="sim-mode-label" class="text-xs font-bold text-pirateGold uppercase block">Hasil Enkripsi (Geser 2 ke Kanan):</span>
+                            <p id="sim-output" class="text-2xl sm:text-3xl font-mono font-extrabold text-white tracking-widest mt-1">UVTCFC</p>
+                        </div>
+                    </div>
+
+                    <!-- Tombol Navigasi Subbab: Sebelumnya, Kembali ke Daftar Materi, Selanjutnya -->
+                    <div class="pt-6 border-t-2 border-woodLight/40 flex flex-wrap items-center justify-between gap-3">
+                        <button id="btn-prev-subbab" onclick="navigateSubbab(-1)" class="btn-pirate bg-pirateBrown text-white font-bold px-4 py-2.5 rounded-xl text-base flex items-center gap-2">
+                            <i class="fa-solid fa-chevron-left"></i> Sebelumnya
+                        </button>
+
+                        <button onclick="backToMateriMenu()" class="bg-white hover:bg-parchmentDark text-pirateBlack border-2 border-pirateBrown font-bold px-4 py-2.5 rounded-xl text-base flex items-center gap-2">
+                            <i class="fa-solid fa-list"></i> Kembali ke Daftar Materi
+                        </button>
+
+                        <button id="btn-next-subbab" onclick="navigateSubbab(1)" class="btn-pirate bg-seaBlue text-white font-bold px-4 py-2.5 rounded-xl text-base flex items-center gap-2">
+                            Selanjutnya <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =================================================================
+             D. KUIS INTERAKTIF (10 SOAL PILIHAN GANDA, 1 SOAL/HALAMAN)
+             ================================================================= -->
+        <section id="tab-kuis" class="tab-content hidden">
+            <div class="parchment-card rounded-3xl p-6 sm:p-10">
+                <div class="flex flex-wrap items-center justify-between gap-4 border-b-2 border-woodLight/40 pb-4 mb-6">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-gem text-3xl sm:text-4xl text-seaBlue animate-gold"></i>
+                        <div>
+                            <span class="text-sm font-bold text-pirateBrown uppercase">Uji Pemahaman • 10 Soal</span>
+                            <h2 class="text-2xl sm:text-4xl font-bold text-pirateBlack">Kuis Harta Karun</h2>
+                        </div>
+                    </div>
+                    <div class="bg-navyDark text-pirateGold px-4 py-2 rounded-2xl font-bold text-lg">
+                        Koin Kuis: <span id="quiz-coins-display">0</span> / 100
+                    </div>
+                </div>
+
+                <!-- Container 1 Soal per Halaman -->
+                <div id="quiz-container">
+                    <!-- Progres Pengerjaan Soal -->
+                    <div class="mb-4">
+                        <div class="flex justify-between text-sm font-bold text-pirateBrown mb-1">
+                            <span id="quiz-progress-label">Soal 1 dari 10</span>
+                            <span>+10 Koin Emas per jawaban benar</span>
+                        </div>
+                        <div class="w-full bg-woodLight/30 h-3 rounded-full overflow-hidden">
+                            <div id="quiz-progress-bar" class="bg-seaBlue h-full transition-all duration-300" style="width: 10%"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white/90 p-6 rounded-2xl border-2 border-woodLight mb-6 shadow-sm">
+                        <h3 id="quiz-question" class="text-xl sm:text-2xl font-bold text-pirateBlack leading-snug">
+                            Memuat soal...
+                        </h3>
+                    </div>
+
+                    <div id="quiz-options" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Pilihan A, B, C, D -->
+                    </div>
+
+                    <!-- Pembahasan Singkat -->
+                    <div id="quiz-feedback" class="mt-5 p-4 rounded-2xl font-bold text-base sm:text-lg hidden"></div>
+
+                    <div class="mt-6 flex justify-end">
+                        <button id="quiz-next-btn" onclick="nextQuizQuestion()" class="hidden btn-pirate bg-seaBlue text-white font-bold px-6 py-3 rounded-xl text-lg">
+                            Soal Berikutnya <i class="fa-solid fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Hasil Akhir Kuis -->
+                <div id="quiz-result" class="hidden text-center py-6 space-y-4">
+                    <i class="fa-solid fa-trophy text-6xl text-pirateGold animate-gold"></i>
+                    <h3 class="text-3xl font-bold text-pirateBlack">Kuis Harta Karun Selesai!</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto my-4">
+                        <div class="bg-white/85 p-4 rounded-2xl border-2 border-woodLight">
+                            <span class="text-xs font-bold text-pirateBrown uppercase block">Total Skor Koin</span>
+                            <span id="final-quiz-score" class="text-2xl font-extrabold text-seaBlue">0 Koin</span>
+                        </div>
+                        <div class="bg-white/85 p-4 rounded-2xl border-2 border-woodLight">
+                            <span class="text-xs font-bold text-pirateBrown uppercase block">Jawaban Benar</span>
+                            <span id="final-quiz-correct" class="text-2xl font-extrabold text-green-700">0 / 10</span>
+                        </div>
+                        <div class="bg-white/85 p-4 rounded-2xl border-2 border-woodLight">
+                            <span class="text-xs font-bold text-pirateBrown uppercase block">Predikat Belajar</span>
+                            <span id="final-quiz-predicate" class="text-xl font-extrabold text-pirateBrown">-</span>
+                        </div>
+                    </div>
+                    <button onclick="resetQuiz()" class="btn-pirate bg-pirateGold text-pirateBlack font-extrabold px-6 py-3 rounded-2xl text-lg mt-2">
+                        <i class="fa-solid fa-rotate-right"></i> Ulangi Kuis
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- =================================================================
+             E. DRAG AND DROP (PETA HARTA KARUN - 8 ISTILAH)
+             ================================================================= -->
+        <section id="tab-dragdrop" class="tab-content hidden">
+            <div class="parchment-card rounded-3xl p-6 sm:p-10">
+                <div class="flex flex-wrap items-center justify-between gap-4 border-b-2 border-woodLight/40 pb-4 mb-5">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-puzzle-piece text-3xl sm:text-4xl text-pirateBrown"></i>
+                        <div>
+                            <span class="text-sm font-bold text-pirateBrown uppercase">Peta Harta Karun • 8 Kotak Misi</span>
+                            <h2 class="text-2xl sm:text-4xl font-bold text-pirateBlack">Drag & Drop Istilah Sandi</h2>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="bg-navyDark text-pirateGold px-4 py-2 rounded-xl font-bold text-sm sm:text-base">
+                            Cocok: <span id="dd-matched-count">0</span> / 8
+                        </span>
+                        <button onclick="initDragDrop()" class="bg-pirateBrown text-goldShine px-3 py-2 rounded-xl font-bold text-sm hover:bg-pirateBlack transition">
+                            <i class="fa-solid fa-shuffle"></i> Acak
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Umpan Balik Langsung -->
+                <div id="dd-feedback-banner" class="mb-5 p-3.5 rounded-2xl bg-navyDark text-white font-bold text-center text-base border-2 border-oceanLight">
+                    Seret istilah di sebelah kiri (atau ketuk istilah lalu ketuk kotak target) ke pengertian yang tepat! (+10 Koin per jawaban benar)
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- 8 Istilah yang Diseret -->
+                    <div class="lg:col-span-4 bg-navyDark/95 p-4 rounded-2xl border-2 border-pirateGold h-fit">
+                        <h3 class="text-pirateGold font-bold text-lg mb-3 text-center"><i class="fa-solid fa-compass"></i> Kepingan Istilah</h3>
+                        <div id="drag-items-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2.5">
+                            <!-- Diisi via JS -->
+                        </div>
+                    </div>
+
+                    <!-- 8 Kotak Misi Peta Harta Karun -->
+                    <div class="lg:col-span-8 space-y-2.5" id="drop-zones-container">
+                        <!-- Diisi via JS -->
+                    </div>
+                </div>
+
+                <!-- Notifikasi Selesai Semua Pasangan -->
+                <div id="dd-complete-msg" class="hidden mt-6 bg-green-800 text-white p-5 rounded-2xl text-center border-4 border-pirateGold shadow-lg">
+                    <h3 class="text-2xl font-bold text-pirateGold"><i class="fa-solid fa-crown"></i> Peta Harta Karun Lengkap!</h3>
+                    <p class="text-lg mt-1">Seluruh 8 pasangan istilah dan pengertian berhasil kamu cocokkan! Total +80 Koin Emas diperoleh!</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- =================================================================
+             F. PIRATE CIPHER CHALLENGE (TANTANGAN ENKRIPSI & DEKRIPSI)
+             ================================================================= -->
+        <section id="tab-tantangan" class="tab-content hidden">
+            <div class="bg-pirateBlack border-4 border-pirateGold rounded-3xl p-6 sm:p-10 shadow-2xl">
+                <!-- Header & Pilihan Mode Permainan -->
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b-2 border-oceanLight/50 pb-5 mb-6">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-2xl bg-pirateGold text-pirateBlack flex items-center justify-center text-2xl font-bold">
+                            <i class="fa-solid fa-skull-crossbones"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-wider text-pirateGold">Uji Kemampuan Kapten</span>
+                            <h2 class="text-2xl sm:text-3xl font-bold text-white">PIRATE CIPHER CHALLENGE</h2>
+                        </div>
+                    </div>
+
+                    <!-- 1. Pilihan Mode Permainan -->
+                    <div class="flex flex-wrap gap-2">
+                        <button id="btn-mode-encrypt" onclick="setChallengeMode('ENCRYPT')" class="px-4 py-2.5 rounded-xl font-extrabold text-sm sm:text-base bg-pirateGold text-pirateBlack border-2 border-pirateGold transition">
+                            <i class="fa-solid fa-lock"></i> MODE ENKRIPSI
+                        </button>
+                        <button id="btn-mode-decrypt" onclick="setChallengeMode('DECRYPT')" class="px-4 py-2.5 rounded-xl font-extrabold text-sm sm:text-base bg-navyDark text-white border-2 border-oceanLight hover:border-pirateGold transition">
+                            <i class="fa-solid fa-unlock"></i> MODE DEKRIPSI
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 5. Visualisasi Progres Petualangan Kapal Menuju Pulau Harta Karun -->
+                <div class="bg-navyDark rounded-2xl p-4 mb-6 border-2 border-oceanLight">
+                    <div class="flex justify-between items-center text-sm font-bold mb-2">
+                        <span class="text-sky-300"><i class="fa-solid fa-route"></i> Pelayaran Menuju Pulau Harta Karun</span>
+                        <span class="text-pirateGold">Tantangan: <span id="ch-step-text">0</span> / 4 Selesai</span>
+                    </div>
+                    <!-- Jalur Laut Kapal -> Pulau -->
+                    <div class="relative h-14 bg-seaBlue/60 rounded-xl border border-oceanLight/50 flex items-center px-4 overflow-hidden">
+                        <!-- Garis Putus Peta -->
+                        <div class="w-full border-b-2 border-dashed border-goldShine/50"></div>
+                        <!-- Kapal Bajak Laut Bergerak -->
+                        <div id="ch-ship-marker" class="absolute transition-all duration-500 text-2xl sm:text-3xl text-pirateGold drop-shadow" style="left: 4%;">
+                            <i class="fa-solid fa-ship"></i>
+                        </div>
+                        <!-- Pulau Harta Karun di Ujung Kanan -->
+                        <div class="absolute right-3 text-2xl sm:text-3xl text-amber-400">
+                            <i class="fa-solid fa-island-tropical"></i><i class="fa-solid fa-box-open ml-1"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Area Soal Tantangan Aktif -->
+                <div id="challenge-active-box" class="parchment-card rounded-2xl p-6 sm:p-8 space-y-5">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <span id="ch-type-badge" class="bg-seaBlue text-white px-4 py-1 rounded-full text-sm font-extrabold">
+                            MODE ENKRIPSI (Geser ke Kanan)
+                        </span>
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm font-bold text-pirateBrown">Kesempatan Tersisa:</span>
+                            <div id="ch-attempts-hearts" class="flex gap-1 text-xl text-red-600">
+                                <i class="fa-solid fa-heart"></i>
+                                <i class="fa-solid fa-heart"></i>
+                                <i class="fa-solid fa-heart"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-navyDark text-white p-5 rounded-2xl text-center border-2 border-pirateGold space-y-2">
+                        <span id="ch-source-label" class="text-xs uppercase text-pirateGold font-bold block">Teks Asli (Plaintext):</span>
+                        <p id="ch-word-display" class="text-3xl sm:text-5xl font-mono font-extrabold tracking-widest text-white">STRADA</p>
+                        <div class="inline-block bg-pirateBrown text-goldShine px-4 py-1.5 rounded-xl font-bold text-base sm:text-lg mt-2">
+                            <i class="fa-solid fa-key"></i> Pergeseran: <span id="ch-shift-display">2 langkah ke kanan</span>
+                        </div>
+                    </div>
+
+                    <!-- Input Jawaban & Tombol -->
+                    <div class="space-y-3">
+                        <label class="block font-bold text-pirateBlack text-base">Masukkan Jawaban Sandimu:</label>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <input type="text" id="ch-user-input" placeholder="Ketik jawaban di sini..." autocomplete="off"
+                                   class="flex-1 px-4 py-3.5 rounded-xl bg-white text-pirateBlack font-mono font-extrabold text-xl uppercase border-2 border-pirateBrown focus:outline-none focus:border-seaBlue">
+                            <button onclick="verifyChallengeAnswer()" class="btn-pirate bg-pirateGold hover:bg-yellow-400 text-pirateBlack font-extrabold px-6 py-3.5 rounded-xl text-lg">
+                                <i class="fa-solid fa-check-double"></i> Periksa Jawaban
+                            </button>
+                            <button onclick="toggleChallengeHint()" class="btn-pirate bg-seaBlue hover:bg-oceanLight text-white font-bold px-5 py-3.5 rounded-xl text-lg">
+                                <i class="fa-solid fa-lightbulb"></i> Petunjuk
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Pita Alfabet A-Z Referensi -->
+                    <div class="bg-white/80 p-3 rounded-xl border border-woodLight text-center font-mono text-xs sm:text-sm font-bold text-pirateBlack overflow-x-auto">
+                        Alfabet: A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+                    </div>
+
+                    <!-- Kotak Petunjuk & Umpan Balik / Hukuman -->
+                    <div id="ch-feedback-box" class="hidden p-4 rounded-2xl font-bold text-base sm:text-lg"></div>
+
+                    <!-- Tombol Lanjut ke Tantangan Berikutnya -->
+                    <div id="ch-next-container" class="hidden flex justify-end">
+                        <button onclick="nextChallengeStep()" class="btn-pirate bg-green-700 hover:bg-green-600 text-white font-extrabold px-6 py-3 rounded-xl text-lg">
+                            Tantangan Berikutnya <i class="fa-solid fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Layar Kemenangan & Peti Harta Karun Terbuka (MASTER OF CIPHER) -->
+                <div id="challenge-victory-box" class="hidden text-center py-8 space-y-5 parchment-card rounded-2xl p-6">
+                    <!-- Animasi SVG Peti Harta Karun Terbuka -->
+                    <div class="flex justify-center">
+                        <svg viewBox="0 0 180 140" class="w-44 h-36 animate-gold">
+                            <!-- Cahaya Emas -->
+                            <polygon points="45,65 135,65 155,15 25,15" fill="#ffe066" opacity="0.45"/>
+                            <!-- Tutup Peti Terbuka -->
+                            <path d="M35 65 L45 32 L135 32 L145 65 Z" fill="#5c3a21" stroke="#2b180a" stroke-width="3"/>
+                            <!-- Tumpukan Koin Emas -->
+                            <circle cx="65" cy="65" r="10" fill="#f5b700"/>
+                            <circle cx="85" cy="62" r="12" fill="#ffe066"/>
+                            <circle cx="108" cy="65" r="10" fill="#f5b700"/>
+                            <!-- Badan Peti -->
+                            <rect x="35" y="65" width="110" height="55" rx="6" fill="#8c5832" stroke="#2b180a" stroke-width="3"/>
+                            <rect x="82" y="60" width="16" height="22" rx="3" fill="#f5b700" stroke="#2b180a" stroke-width="2"/>
+                        </svg>
+                    </div>
+
+                    <div class="inline-block bg-navyDark text-pirateGold px-5 py-2 rounded-full font-extrabold text-sm sm:text-base border-2 border-pirateGold">
+                        <i class="fa-solid fa-crown"></i> GELAR TERTINGGI DIPEROLEH
+                    </div>
+                    <h3 class="text-3xl sm:text-5xl font-extrabold text-pirateBlack">MASTER OF CIPHER!</h3>
+                    <p class="text-lg sm:text-xl text-pirateBrown font-bold max-w-xl mx-auto">
+                        Selamat Kapten! Kapalmu berhasil mencapai Pulau Harta Karun dan membuka peti emas! Kamu juga dapat mencoba mode lainnya untuk mengasah kemampuanmu.
+                    </p>
+                    <div class="flex flex-wrap justify-center gap-3 pt-2">
+                        <button onclick="resetCurrentChallengeMode()" class="btn-pirate bg-pirateGold text-pirateBlack font-extrabold px-6 py-3 rounded-xl text-lg">
+                            <i class="fa-solid fa-rotate-right"></i> Ulangi Mode Ini
+                        </button>
+                        <button onclick="switchOppositeChallengeMode()" class="btn-pirate bg-seaBlue text-white font-extrabold px-6 py-3 rounded-xl text-lg">
+                            <i class="fa-solid fa-shuffle"></i> Coba Mode Lainnya
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =================================================================
+             G. TENTANG (PROFIL PENGEMBANG)
+             ================================================================= -->
+        <section id="tab-tentang" class="tab-content hidden">
+            <div class="parchment-card rounded-3xl p-6 sm:p-10">
+                <div class="flex items-center gap-3 border-b-2 border-woodLight/40 pb-4 mb-6">
+                    <i class="fa-solid fa-anchor text-3xl sm:text-4xl text-seaBlue"></i>
+                    <div>
+                        <span class="text-sm font-bold text-pirateBrown uppercase">Profil Nakhoda Pembelajaran</span>
+                        <h2 class="text-2xl sm:text-4xl font-bold text-pirateBlack">Tentang Media Pembelajaran</h2>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+                    <!-- Kartu Identitas Pengembang -->
+                    <div class="md:col-span-5 bg-navyDark text-white rounded-3xl p-6 text-center border-4 border-pirateGold shadow-xl">
+                        <div class="w-24 h-24 mx-auto bg-pirateGold text-pirateBlack rounded-full flex items-center justify-center text-4xl font-bold mb-4 shadow-lg">
+                            <i class="fa-solid fa-user-tie"></i>
+                        </div>
+                        <span class="text-xs uppercase tracking-widest text-pirateGold font-bold">Pengembang Media</span>
+                        <h3 class="text-2xl font-bold text-white mt-1">Leonardy Fery Scorpionius</h3>
+                        <p class="text-base text-sky-300 font-bold mt-1">Guru Informatika SMP</p>
+                    </div>
+
+                    <!-- Detail Metadata Pembelajaran -->
+                    <div class="md:col-span-7 space-y-4">
+                        <div class="bg-white/85 rounded-2xl p-5 border-2 border-woodLight space-y-3 text-base sm:text-lg">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-user-pen text-seaBlue w-6 text-center"></i>
+                                <span><strong>Nama Pengembang:</strong> Leonardy Fery Scorpionius</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-chalkboard-user text-seaBlue w-6 text-center"></i>
+                                <span><strong>Profesi:</strong> Guru Informatika SMP</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-laptop-code text-seaBlue w-6 text-center"></i>
+                                <span><strong>Mata Pelajaran:</strong> Informatika</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-users text-seaBlue w-6 text-center"></i>
+                                <span><strong>Sasaran:</strong> Siswa SMP Kelas 7 Fase D</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-shield-halved text-seaBlue w-6 text-center"></i>
+                                <span><strong>Materi:</strong> Proteksi Data dan File – Enkripsi dan Dekripsi Caesar's Cipher</span>
+                            </div>
+                        </div>
+
+                        <!-- Kalimat Penutup -->
+                        <div class="bg-pirateBrown text-goldShine p-5 rounded-2xl border-2 border-pirateGold shadow">
+                            <p class="text-lg sm:text-xl font-bold italic text-center">
+                                "Jadilah penjelajah dunia digital yang cerdas. Lindungi datamu, pecahkan kode rahasia, dan teruslah belajar!"
+                            </p>
+                        </div>
+
+                        <div class="pt-2">
+                            <button onclick="switchTab('home')" class="btn-pirate bg-pirateGold hover:bg-yellow-400 text-pirateBlack font-extrabold px-6 py-3 rounded-2xl text-lg inline-flex items-center gap-2">
+                                <i class="fa-solid fa-house"></i> Kembali ke Home
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-pirateBlack text-gray-300 border-t-2 border-pirateGold/40 py-4 px-4 text-center text-sm mt-auto">
+        <p>
+            PIRATE ADVENTURE: MISSION DATA SECURITY &bull; Dikembangkan oleh <strong class="text-pirateGold">Leonardy Fery Scorpionius</strong> (Guru Informatika SMP)
+        </p>
+    </footer>
+
+    <!-- =================================================================
+         JAVASCRIPT LOGIKA INTERAKTIF LENGKAP
+         ================================================================= -->
+    <script>
+        /* -----------------------------------------------------------------
+           0. STATE GLOBAL (KOIN EMAS & PROGRES PENYELESAIAN MISI)
+           ----------------------------------------------------------------- */
+        const appState = {
+            coins: 0,
+            objectivesCompleted: [false, false, false, false, false, false, false],
+            materiVisited: [false, false, false, false, false, false],
+            quizCompleted: false,
+            dragDropCompleted: false,
+            challengeEncryptCompleted: false,
+            challengeDecryptCompleted: false
+        };
+
+        function addCoins(amount) {
+            appState.coins = Math.max(0, appState.coins + amount);
+            updateGlobalProgressUI();
+        }
+
+        function updateGlobalProgressUI() {
+            // Update tampilan koin di header & home
+            document.getElementById('global-coins').textContent = appState.coins;
+            document.getElementById('home-coins').textContent = appState.coins;
+
+            // Hitung persentase penyelesaian misi keseluruhan (total bobot 100%)
+            // 1. Tujuan (7 item -> 14%), 2. Materi (6 subbab -> 24%), 3. Kuis (22%), 4. DragDrop (20%), 5. Challenge (20%)
+            const objScore = (appState.objectivesCompleted.filter(Boolean).length / 7) * 14;
+            const matScore = (appState.materiVisited.filter(Boolean).length / 6) * 24;
+            const quizScorePct = appState.quizCompleted ? 22 : 0;
+            const ddScorePct = appState.dragDropCompleted ? 20 : 0;
+            const chScorePct = (appState.challengeEncryptCompleted ? 10 : 0) + (appState.challengeDecryptCompleted ? 10 : 0);
+
+            const totalPercent = Math.min(100, Math.round(objScore + matScore + quizScorePct + ddScorePct + chScorePct));
+            document.getElementById('home-progress-text').textContent = totalPercent + '%';
+            document.getElementById('home-progress-bar').style.width = totalPercent + '%';
+        }
+
+        /* -----------------------------------------------------------------
+           1. NAVIGASI TAB SINGLE PAGE APPLICATION
+           ----------------------------------------------------------------- */
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(sec => {
+                sec.classList.add('hidden');
+                sec.classList.remove('block');
+            });
+
+            const target = document.getElementById('tab-' + tabId);
+            if (target) {
+                target.classList.remove('hidden');
+                target.classList.add('block');
+            }
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if (btn.dataset.tab === tabId) {
+                    btn.classList.remove('bg-seaBlue/80', 'text-white', 'bg-red-800/90', 'text-goldShine');
+                    btn.classList.add('bg-pirateGold', 'text-pirateBlack', 'font-bold');
+                } else {
+                    btn.classList.remove('bg-pirateGold', 'text-pirateBlack');
+                    if (btn.dataset.tab === 'tantangan') {
+                        btn.classList.add('bg-red-800/90', 'text-goldShine');
+                    } else {
+                        btn.classList.add('bg-seaBlue/80', 'text-white');
+                    }
+                }
+            });
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        /* -----------------------------------------------------------------
+           2. B. TUJUAN PEMBELAJARAN (7 MISI INTERAKTIF)
+           ----------------------------------------------------------------- */
+        const learningObjectives = [
+            { icon: "fa-shield-halved", text: "Menjelaskan pentingnya proteksi data dan file." },
+            { icon: "fa-lock", text: "Menjelaskan pengertian enkripsi dan dekripsi." },
+            { icon: "fa-user-shield", text: "Memahami fungsi enkripsi dalam melindungi data digital." },
+            { icon: "fa-key", text: "Menjelaskan cara kerja enkripsi dan Cryptographic Key." },
+            { icon: "fa-arrow-right", text: "Menerapkan algoritma Caesar's Cipher untuk mengenkripsi pesan sederhana." },
+            { icon: "fa-arrow-left", text: "Melakukan dekripsi pesan menggunakan algoritma Caesar's Cipher." },
+            { icon: "fa-globe", text: "Memahami penerapan enkripsi dalam kehidupan sehari-hari." }
+        ];
+
+        function renderObjectives() {
+            const container = document.getElementById('objectives-list');
+            container.innerHTML = learningObjectives.map((obj, idx) => {
+                const isDone = appState.objectivesCompleted[idx];
+                return `
+                    <div onclick="toggleObjective(${idx})" class="cursor-pointer p-4 rounded-2xl border-2 transition flex items-center justify-between gap-3 ${isDone ? 'bg-green-100 border-green-600' : 'bg-white/85 hover:bg-goldShine/30 border-woodLight'}">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-11 h-11 rounded-xl ${isDone ? 'bg-green-600 text-white' : 'bg-seaBlue text-pirateGold'} flex items-center justify-center text-xl flex-shrink-0">
+                                <i class="fa-solid ${obj.icon}"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs font-extrabold uppercase text-pirateBrown">Misi #${idx + 1}</span>
+                                <p class="text-base sm:text-lg font-bold text-pirateBlack leading-snug">${obj.text}</p>
+                            </div>
+                        </div>
+                        <div class="text-2xl flex-shrink-0 ${isDone ? 'text-green-600' : 'text-gray-400'}">
+                            <i class="fa-solid ${isDone ? 'fa-square-check' : 'fa-square'}"></i>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('objectives-done-count').textContent = appState.objectivesCompleted.filter(Boolean).length;
+            updateGlobalProgressUI();
+        }
+
+        function toggleObjective(idx) {
+            appState.objectivesCompleted[idx] = !appState.objectivesCompleted[idx];
+            renderObjectives();
+        }
+
+        /* -----------------------------------------------------------------
+           3. C. MATERI PEMBELAJARAN (6 SUBBAB PROTEKSI DATA DAN FILE)
+           ----------------------------------------------------------------- */
+        const subbabContents = [
+            {
+                title: "1. Pentingnya Proteksi Data",
+                html: `
+                    <h3 class="text-2xl sm:text-3xl font-bold text-seaBlue mb-3">1. Pentingnya Proteksi Data</h3>
+                    <p><strong>Data</strong> merupakan sumber daya yang sangat penting bagi individu maupun kelompok (seperti sekolah, perusahaan, atau instansi). Data bisa berupa identitas diri, foto, tugas sekolah, nilai, hingga informasi keuangan.</p>
+                    <p>Karena nilainya yang sangat berharga, data harus dilindungi dari berbagai risiko seperti pencurian, perusakan, maupun penyalahgunaan oleh pihak yang tidak bertanggung jawab.</p>
+                    <div class="bg-white/85 p-4 rounded-2xl border-2 border-woodLight my-3">
+                        <h4 class="font-bold text-pirateBrown mb-2"><i class="fa-solid fa-triangle-exclamation text-red-600"></i> Risiko Pencurian Data Dapat Terjadi Melalui:</h4>
+                        <ul class="list-disc list-inside space-y-1 text-base sm:text-lg">
+                            <li><strong>Jaringan komputer & internet:</strong> Penyadapan data saat menggunakan Wi-Fi publik yang tidak aman.</li>
+                            <li><strong>Aplikasi berbahaya (Malware):</strong> Aplikasi palsu yang mencuri kontak, kata sandi, atau file pribadi.</li>
+                            <li><strong>Kecerobohan pengguna:</strong> Membagikan kata sandi sembarangan atau meninggalkan perangkat tanpa dikunci.</li>
+                        </ul>
+                    </div>
+                    <p><strong>Proteksi data</strong> adalah segala upaya yang dilakukan untuk menjaga keamanan informasi agar tetap rahasia, utuh, dan hanya dapat diakses oleh pemiliknya.</p>
+                    <div class="bg-navyDark text-white p-5 rounded-2xl border-l-8 border-pirateGold">
+                        <span class="text-xs uppercase font-bold text-pirateGold block">Studi Kasus Nyata:</span>
+                        <p class="text-base sm:text-lg mt-1">
+                            <strong>Seseorang kehilangan flashdisk yang berisi dokumen pribadi</strong> (seperti kartu keluarga, foto, dan tugas penting). Jika file di dalam flashdisk tersebut tidak diproteksi atau dienkripsi, siapa pun yang menemukan flashdisk itu dapat langsung membuka dan menyalahgunakan seluruh dokumen pribadi tersebut!
+                        </p>
+                    </div>
+                `
+            },
+            {
+                title: "2. Pengertian Enkripsi dan Dekripsi",
+                html: `
+                    <h3 class="text-2xl sm:text-3xl font-bold text-seaBlue mb-3">2. Pengertian Enkripsi dan Dekripsi</h3>
+                    <p>Kata <strong>encryption (enkripsi)</strong> berasal dari bahasa Yunani <em>"kryptos"</em> yang berarti <strong>tersembunyi</strong> atau <strong>rahasia</strong>.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-3">
+                        <div class="bg-seaBlue text-white p-5 rounded-2xl">
+                            <h4 class="text-xl font-bold text-pirateGold mb-1"><i class="fa-solid fa-lock"></i> Enkripsi</h4>
+                            <p class="text-base">Metode mengubah data atau teks asli menjadi bentuk kode rahasia sehingga tidak dapat dibaca sebelum dikembalikan ke bentuk aslinya.</p>
+                        </div>
+                        <div class="bg-pirateBrown text-white p-5 rounded-2xl">
+                            <h4 class="text-xl font-bold text-pirateGold mb-1"><i class="fa-solid fa-unlock"></i> Dekripsi</h4>
+                            <p class="text-base">Proses mengembalikan pesan rahasia (kode sandi) menjadi teks asli yang dapat dibaca kembali.</p>
+                        </div>
+                    </div>
+                    <!-- Ilustrasi Alur Enkripsi & Dekripsi -->
+                    <div class="bg-white/90 p-5 rounded-2xl border-2 border-woodLight text-center my-4">
+                        <span class="text-xs font-bold uppercase text-pirateBrown block mb-3">Ilustrasi Alur Enkripsi & Dekripsi:</span>
+                        <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-3 font-bold text-sm sm:text-base">
+                            <span class="bg-green-700 text-white px-3 py-2 rounded-xl">Teks Asli</span>
+                            <i class="fa-solid fa-arrow-right text-pirateBrown"></i>
+                            <span class="bg-seaBlue text-pirateGold px-3 py-2 rounded-xl"><i class="fa-solid fa-lock"></i> Enkripsi</span>
+                            <i class="fa-solid fa-arrow-right text-pirateBrown"></i>
+                            <span class="bg-pirateBlack text-white px-3 py-2 rounded-xl">Teks Rahasia</span>
+                            <i class="fa-solid fa-arrow-right text-pirateBrown"></i>
+                            <span class="bg-pirateBrown text-goldShine px-3 py-2 rounded-xl"><i class="fa-solid fa-unlock"></i> Dekripsi</span>
+                            <i class="fa-solid fa-arrow-right text-pirateBrown"></i>
+                            <span class="bg-green-700 text-white px-3 py-2 rounded-xl">Teks Asli</span>
+                        </div>
+                    </div>
+                    <div class="bg-parchmentDark/80 p-4 rounded-2xl border border-woodLight">
+                        <p class="font-bold text-pirateBlack"><i class="fa-solid fa-envelope-open-text text-seaBlue"></i> Contoh Sederhana:</p>
+                        <p class="text-base mt-1">Kapten mengirim pesan asli <strong>"SERANG"</strong>. Setelah dienkripsi, pesan berubah menjadi <strong>"TFSBOH"</strong>. Perompak yang mencegat pesan tidak mengerti artinya, namun kru kapal yang tahu kuncinya dapat melakukan dekripsi kembali menjadi <strong>"SERANG"</strong>.</p>
+                    </div>
+                `
+            },
+            {
+                title: "3. Fungsi Enkripsi dalam Kehidupan Sehari-hari",
+                html: `
+                    <h3 class="text-2xl sm:text-3xl font-bold text-seaBlue mb-3">3. Fungsi Enkripsi dalam Kehidupan Sehari-hari</h3>
+                    <p>Tanpa kita sadari, teknologi enkripsi melindungi aktivitas digital kita setiap hari:</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                        <div class="bg-white/90 p-4 rounded-2xl border-2 border-woodLight flex gap-3 items-start">
+                            <div class="bg-seaBlue text-pirateGold p-3 rounded-xl text-xl"><i class="fa-solid fa-cart-shopping"></i></div>
+                            <div>
+                                <h4 class="font-bold text-pirateBlack">1. Transaksi Pembelian Online (E-Commerce)</h4>
+                                <p class="text-sm text-pirateBrown">Melindungi nomor kartu pembayaran, alamat rumah, dan kata sandi akun saat belanja daring (ditandai ikon gembok HTTPS).</p>
+                            </div>
+                        </div>
+                        <div class="bg-white/90 p-4 rounded-2xl border-2 border-woodLight flex gap-3 items-start">
+                            <div class="bg-green-700 text-white p-3 rounded-xl text-xl"><i class="fa-solid fa-comments"></i></div>
+                            <div>
+                                <h4 class="font-bold text-pirateBlack">2. Aplikasi Percakapan / Chat</h4>
+                                <p class="text-sm text-pirateBrown">Fitur <em>End-to-End Encryption</em> memastikan hanya pengirim dan penerima pesan yang dapat membaca isi chat.</p>
+                            </div>
+                        </div>
+                        <div class="bg-white/90 p-4 rounded-2xl border-2 border-woodLight flex gap-3 items-start">
+                            <div class="bg-pirateGold text-pirateBlack p-3 rounded-xl text-xl"><i class="fa-solid fa-building-columns"></i></div>
+                            <div>
+                                <h4 class="font-bold text-pirateBlack">3. Layanan E-Banking</h4>
+                                <p class="text-sm text-pirateBrown">Mengamankan PIN, kode OTP, dan transaksi transfer uang agar tidak dibobol peretas.</p>
+                            </div>
+                        </div>
+                        <div class="bg-white/90 p-4 rounded-2xl border-2 border-woodLight flex gap-3 items-start">
+                            <div class="bg-pirateBrown text-goldShine p-3 rounded-xl text-xl"><i class="fa-solid fa-hard-drive"></i></div>
+                            <div>
+                                <h4 class="font-bold text-pirateBlack">4. Penyimpanan Harddisk, CD, & Flashdisk</h4>
+                                <p class="text-sm text-pirateBrown">Mengunci folder atau drive penyimpanan dengan kata sandi terenkripsi.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-navyDark text-white p-4 rounded-2xl mt-3 flex items-center gap-3 border border-pirateGold">
+                        <i class="fa-solid fa-laptop-medical text-3xl text-pirateGold"></i>
+                        <p class="text-base"><strong>5. Perlindungan Saat Perangkat Hilang/Dicuri:</strong> Jika laptop atau ponsel yang terenkripsi hilang, pencuri tetap tidak bisa membuka file pribadi di dalamnya tanpa kunci yang benar.</p>
+                    </div>
+                `
+            },
+            {
+                title: "4. Cara Kerja Enkripsi",
+                html: `
+                    <h3 class="text-2xl sm:text-3xl font-bold text-seaBlue mb-3">4. Cara Kerja Enkripsi</h3>
+                    <p>Enkripsi bekerja dengan mengubah atau mengacak data asli agar hanya dapat dipahami oleh pihak tertentu yang berhak.</p>
+                    <ul class="list-disc list-inside space-y-2 bg-white/85 p-5 rounded-2xl border-2 border-woodLight text-base sm:text-lg">
+                        <li>Data asli diubah menjadi bentuk kode yang tidak mudah dibaca manusia secara langsung.</li>
+                        <li>Proses pengacakan dilakukan berdasarkan <strong>aturan algoritma tertentu</strong>, bukan diacak secara sembarangan.</li>
+                        <li><strong>Cryptographic Key (Kunci Kriptografi)</strong> merupakan sekumpulan nilai matematika yang digunakan dalam proses enkripsi maupun dekripsi.</li>
+                        <li>Hanya pihak yang memiliki <strong>kunci yang sesuai</strong> yang dapat mengembalikan data rahasia ke bentuk aslinya.</li>
+                    </ul>
+                    <!-- Ilustrasi Pengirim -> Penerima -->
+                    <div class="bg-navyDark text-white p-5 rounded-2xl border-2 border-pirateGold mt-4">
+                        <span class="text-xs uppercase font-bold text-pirateGold block text-center mb-3">Alur Komunikasi Aman dengan Cryptographic Key:</span>
+                        <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-sm sm:text-base font-bold">
+                            <div class="bg-seaBlue px-3 py-2 rounded-xl text-center"><i class="fa-solid fa-user"></i> Pengirim</div>
+                            <i class="fa-solid fa-arrow-right text-pirateGold"></i>
+                            <div class="bg-pirateGold text-pirateBlack px-3 py-2 rounded-xl text-center"><i class="fa-solid fa-key"></i> Proses Enkripsi</div>
+                            <i class="fa-solid fa-arrow-right text-pirateGold"></i>
+                            <div class="bg-red-900 px-3 py-2 rounded-xl border border-red-400 text-center"><i class="fa-solid fa-file-shield"></i> Pesan Rahasia</div>
+                            <i class="fa-solid fa-arrow-right text-pirateGold"></i>
+                            <div class="bg-pirateGold text-pirateBlack px-3 py-2 rounded-xl text-center"><i class="fa-solid fa-key"></i> Proses Dekripsi</div>
+                            <i class="fa-solid fa-arrow-right text-pirateGold"></i>
+                            <div class="bg-green-700 px-3 py-2 rounded-xl text-center"><i class="fa-solid fa-user-check"></i> Penerima</div>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                title: "5. Pengenalan Caesar's Cipher",
+                html: `
+                    <h3 class="text-2xl sm:text-3xl font-bold text-seaBlue mb-3">5. Pengenalan Caesar's Cipher</h3>
+                    <p><strong>Caesar's Cipher</strong> adalah salah satu metode enkripsi klasik paling terkenal yang bekerja dengan cara <strong>menggeser huruf alfabet (A sampai Z)</strong> berdasarkan jumlah langkah tertentu.</p>
+                    <div class="bg-white/90 p-5 rounded-2xl border-2 border-woodLight space-y-3">
+                        <p class="font-bold text-pirateBrown">Contoh Pergeseran 1 Langkah ke Kanan:</p>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono font-bold text-center text-lg">
+                            <div class="bg-parchmentDark p-2 rounded-xl">A &rarr; <span class="text-seaBlue">B</span></div>
+                            <div class="bg-parchmentDark p-2 rounded-xl">B &rarr; <span class="text-seaBlue">C</span></div>
+                            <div class="bg-parchmentDark p-2 rounded-xl">C &rarr; <span class="text-seaBlue">D</span></div>
+                            <div class="bg-parchmentDark p-2 rounded-xl">D &rarr; <span class="text-seaBlue">E</span></div>
+                        </div>
+                        <p class="text-base">Setiap huruf diganti dengan huruf setelahnya sesuai jumlah pergeseran. <strong>Aturan penting:</strong> Jika pergeseran melewati huruf <strong>Z</strong>, maka akan kembali berputar ke huruf <strong>A</strong> (contoh: Z geser 1 ke kanan menjadi A).</p>
+                    </div>
+                    <div class="bg-navyDark text-white p-5 rounded-2xl border-2 border-pirateGold mt-3 font-mono">
+                        <span class="text-xs font-sans uppercase text-pirateGold font-bold block mb-2">Contoh Penerapan Kalimat:</span>
+                        <p class="text-base sm:text-lg">Teks asli       : <strong class="text-green-400">AKU SUDAH MAKAN</strong></p>
+                        <p class="text-base sm:text-lg">Pergeseran      : <strong class="text-pirateGold">1 langkah ke kanan</strong></p>
+                        <p class="text-base sm:text-lg">Hasil enkripsi  : <strong class="text-sky-300">BLV TVEBI NBLBO</strong></p>
+                        <p class="text-xs font-sans text-gray-300 mt-2">*Catatan: Tanda spasi tetap dipertahankan dan tidak berubah.</p>
+                    </div>
+                `
+            },
+            {
+                title: "6. Enkripsi dan Dekripsi Caesar's Cipher",
+                html: `
+                    <h3 class="text-2xl sm:text-3xl font-bold text-seaBlue mb-3">6. Enkripsi dan Dekripsi Caesar's Cipher</h3>
+                    <p>Dalam menggunakan Caesar's Cipher, terdapat dua arah pergeseran huruf:</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-3">
+                        <div class="bg-white/90 p-5 rounded-2xl border-2 border-seaBlue">
+                            <h4 class="text-xl font-bold text-seaBlue mb-2"><i class="fa-solid fa-arrow-right"></i> Proses Enkripsi (Geser Kanan)</h4>
+                            <p class="text-base mb-2">Menggeser huruf <strong>ke kanan</strong> sesuai jumlah langkah kunci.</p>
+                            <div class="bg-navyDark text-white p-3 rounded-xl font-mono text-sm sm:text-base">
+                                <p>Teks asli : <strong>STRADA</strong></p>
+                                <p>Kunci     : <strong>2</strong> (geser 2 kanan)</p>
+                                <p class="text-pirateGold">Hasil     : <strong>UVTCFC</strong></p>
+                            </div>
+                        </div>
+                        <div class="bg-white/90 p-5 rounded-2xl border-2 border-pirateBrown">
+                            <h4 class="text-xl font-bold text-pirateBrown mb-2"><i class="fa-solid fa-arrow-left"></i> Proses Dekripsi (Geser Kiri)</h4>
+                            <p class="text-base mb-2">Menggeser huruf <strong>ke kiri</strong> sesuai jumlah langkah untuk mendapatkan pesan asli.</p>
+                            <div class="bg-navyDark text-white p-3 rounded-xl font-mono text-sm sm:text-base">
+                                <p>Teks rahasia : <strong>UVTCFC</strong></p>
+                                <p>Kunci        : <strong>2</strong> (geser 2 kiri)</p>
+                                <p class="text-green-400">Hasil        : <strong>STRADA</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center pt-2">
+                        <button onclick="toggleSubbab6Simulator()" class="btn-pirate bg-pirateGold hover:bg-yellow-400 text-pirateBlack font-extrabold px-6 py-3 rounded-2xl text-lg inline-flex items-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> COBA SENDIRI
+                        </button>
+                    </div>
+                `
+            }
+        ];
+
+        let currentSubbabIdx = 0;
+
+        function openSubbab(number) {
+            currentSubbabIdx = number - 1;
+            appState.materiVisited[currentSubbabIdx] = true;
+            updateGlobalProgressUI();
+
+            document.getElementById('materi-menu-view').classList.add('hidden');
+            document.getElementById('materi-detail-view').classList.remove('hidden');
+            document.getElementById('subbab-indicator').textContent = `${number} dari 6`;
+            document.getElementById('materi-body').innerHTML = subbabContents[currentSubbabIdx].html;
+
+            // Sembunyikan simulator kecuali dibuka di subbab 6
+            document.getElementById('subbab6-simulator').classList.add('hidden');
+
+            // Atur status tombol Sebelumnya & Selanjutnya
+            const prevBtn = document.getElementById('btn-prev-subbab');
+            const nextBtn = document.getElementById('btn-next-subbab');
+            prevBtn.disabled = currentSubbabIdx === 0;
+            prevBtn.style.opacity = currentSubbabIdx === 0 ? '0.4' : '1';
+            nextBtn.disabled = currentSubbabIdx === subbabContents.length - 1;
+            nextBtn.style.opacity = currentSubbabIdx === subbabContents.length - 1 ? '0.4' : '1';
+        }
+
+        function navigateSubbab(delta) {
+            const next = currentSubbabIdx + delta;
+            if (next >= 0 && next < subbabContents.length) {
+                openSubbab(next + 1);
+            }
+        }
+
+        function backToMateriMenu() {
+            document.getElementById('materi-detail-view').classList.add('hidden');
+            document.getElementById('materi-menu-view').classList.remove('hidden');
+            document.getElementById('subbab-indicator').textContent = 'Daftar';
+        }
+
+        function toggleSubbab6Simulator() {
+            const sim = document.getElementById('subbab6-simulator');
+            sim.classList.toggle('hidden');
+            if (!sim.classList.contains('hidden')) {
+                runMateriSimulator('encrypt');
+            }
+        }
+
+        function caesarCipher(text, shift, mode = 'encrypt') {
+            let s = parseInt(shift) || 0;
+            s = ((s % 26) + 26) % 26;
+            if (mode === 'decrypt') {
+                s = (26 - s) % 26;
+            }
+            return text.toUpperCase().split('').map(ch => {
+                const code = ch.charCodeAt(0);
+                if (code >= 65 && code <= 90) {
+                    return String.fromCharCode(((code - 65 + s) % 26) + 65);
+                }
+                return ch;
+            }).join('');
+        }
+
+        function runMateriSimulator(mode) {
+            const text = document.getElementById('sim-input').value;
+            const key = document.getElementById('sim-key').value;
+            const res = caesarCipher(text, key, mode);
+            document.getElementById('sim-output').textContent = res || '(KOSONG)';
+            document.getElementById('sim-mode-label').textContent = mode === 'encrypt'
+                ? `Hasil Enkripsi (Geser ${key} ke Kanan):`
+                : `Hasil Dekripsi (Geser ${key} ke Kiri):`;
+        }
+
+        /* -----------------------------------------------------------------
+           4. D. KUIS INTERAKTIF (10 SOAL PILIHAN GANDA)
+           ----------------------------------------------------------------- */
+        const quizQuestions = [
+            {
+                q: "1. Mengapa data pribadi dan file penting harus diproteksi?",
+                options: [
+                    "Agar file menjadi lebih berwarna saat dibuka",
+                    "Untuk mencegah pencurian, penyalahgunaan, dan perusakan informasi oleh pihak tidak berhak",
+                    "Supaya kapasitas flashdisk bertambah besar secara otomatis",
+                    "Agar file dapat dibuka tanpa menggunakan komputer"
+                ],
+                ans: 1,
+                exp: "Proteksi data bertujuan menjaga kerahasiaan dan keamanan informasi penting dari risiko pencurian maupun penyalahgunaan."
+            },
+            {
+                q: "2. Metode mengubah data atau pesan asli menjadi bentuk kode rahasia sehingga tidak dapat dibaca disebut...",
+                options: ["Dekripsi", "Enkripsi", "Kompresi", "Ekstraksi"],
+                ans: 1,
+                exp: "Enkripsi (dari bahasa Yunani 'kryptos' yang berarti tersembunyi) mengubah teks asli menjadi bentuk kode rahasia."
+            },
+            {
+                q: "3. Proses mengembalikan pesan rahasia (kode sandi) menjadi teks asli yang dapat dibaca kembali disebut...",
+                options: ["Enkripsi", "Duplikasi", "Dekripsi", "Format"],
+                ans: 2,
+                exp: "Dekripsi adalah kebalikan dari enkripsi, yaitu membuka sandi agar kembali menjadi teks asli."
+            },
+            {
+                q: "4. Manakah pernyataan berikut yang paling tepat mengenai fungsi enkripsi?",
+                options: [
+                    "Menghapus virus komputer dari jaringan internet",
+                    "Melindungi informasi sensitif saat dikirim melalui jaringan atau disimpan di perangkat",
+                    "Mempercepat proses pengunduhan video di internet",
+                    "Mengganti sistem operasi komputer secara otomatis"
+                ],
+                ans: 1,
+                exp: "Enkripsi berfungsi melindungi data digital baik saat transit di jaringan maupun saat tersimpan di media penyimpanan."
+            },
+            {
+                q: "5. Sekumpulan nilai matematika yang digunakan dalam proses enkripsi dan dekripsi disebut...",
+                options: ["Flashdisk", "Cryptographic Key", "Browser", "Plaintext"],
+                ans: 1,
+                exp: "Cryptographic Key adalah kunci matematis yang memungkinkan pengacakan dan pengembalian data secara sah."
+            },
+            {
+                q: "6. Bagaimana cara kerja proses enkripsi dalam mengamankan data?",
+                options: [
+                    "Mengacak huruf secara sembarangan tanpa aturan",
+                    "Mengubah data berdasarkan aturan algoritma tertentu dan kunci agar hanya pemilik kunci yang bisa membacanya",
+                    "Menyembunyikan monitor komputer dengan kain",
+                    "Menghapus semua huruf konsonan pada pesan"
+                ],
+                ans: 1,
+                exp: "Enkripsi menggunakan aturan algoritma terstruktur dan Cryptographic Key sehingga penerima yang sah dapat mendekripsinya."
+            },
+            {
+                q: "7. Contoh penerapan enkripsi dalam kehidupan sehari-hari adalah...",
+                options: [
+                    "Menulis catatan harian di buku tulis biasa",
+                    "Transaksi belanja online (e-commerce), layanan e-banking, dan fitur End-to-End Encryption pada aplikasi chat",
+                    "Mencetak dokumen tugas menggunakan printer",
+                    "Menghapus riwayat pencarian di browser"
+                ],
+                ans: 1,
+                exp: "E-commerce, e-banking, dan aplikasi chat modern menggunakan enkripsi untuk melindungi data transaksi dan percakapan."
+            },
+            {
+                q: "8. Algoritma sandi klasik yang bekerja dengan menggeser posisi huruf alfabet sejauh jumlah langkah tertentu adalah...",
+                options: ["Morse Code", "Caesar's Cipher", "Barcode", "QR Code"],
+                ans: 1,
+                exp: "Caesar's Cipher adalah teknik enkripsi substitusi geser menggunakan urutan alfabet A–Z."
+            },
+            {
+                q: "9. Pada Caesar's Cipher, jika huruf 'Z' digeser 1 langkah ke kanan, maka huruf penggantinya adalah...",
+                options: ["Y", "X", "A", "B"],
+                ans: 2,
+                exp: "Dalam aturan Caesar's Cipher, jika pergeseran melewati huruf Z maka urutan berputar kembali ke huruf A."
+            },
+            {
+                q: "10. Perbedaan arah pergeseran pada algoritma Caesar's Cipher adalah...",
+                options: [
+                    "Enkripsi menggeser huruf ke kanan, sedangkan dekripsi menggeser huruf ke kiri",
+                    "Enkripsi menggeser huruf ke kiri, sedangkan dekripsi menggeser huruf ke kanan",
+                    "Keduanya sama-sama menggeser huruf ke kanan",
+                    "Keduanya tidak menggunakan pergeseran huruf"
+                ],
+                ans: 0,
+                exp: "Enkripsi menggeser alfabet maju (ke kanan) sesuai kunci, sedangkan dekripsi menggeser mundur (ke kiri)."
+            }
+        ];
+
+        let quizIdx = 0;
+        let quizCoins = 0;
+        let quizCorrectCount = 0;
+        let isQuizLocked = false;
+
+        function renderQuizQuestion() {
+            const item = quizQuestions[quizIdx];
+            isQuizLocked = false;
+
+            document.getElementById('quiz-progress-label').textContent = `Soal ${quizIdx + 1} dari ${quizQuestions.length}`;
+            document.getElementById('quiz-progress-bar').style.width = `${((quizIdx + 1) / quizQuestions.length) * 100}%`;
+            document.getElementById('quiz-question').textContent = item.q;
+            document.getElementById('quiz-feedback').classList.add('hidden');
+            document.getElementById('quiz-next-btn').classList.add('hidden');
+
+            const letters = ['A', 'B', 'C', 'D'];
+            document.getElementById('quiz-options').innerHTML = item.options.map((opt, i) => `
+                <button onclick="handleQuizAnswer(${i})" id="quiz-opt-${i}"
+                        class="text-left p-4 rounded-2xl bg-white hover:bg-goldShine/40 border-2 border-woodLight font-bold text-pirateBlack text-base sm:text-lg transition flex items-center gap-3">
+                    <span class="w-9 h-9 rounded-full bg-seaBlue text-white flex items-center justify-center flex-shrink-0 font-extrabold">${letters[i]}</span>
+                    <span>${opt}</span>
+                </button>
+            `).join('');
+        }
+
+        function handleQuizAnswer(selected) {
+            if (isQuizLocked) return;
+            isQuizLocked = true; // Siswa tidak dapat mengganti jawaban setelah dikonfirmasi
+
+            const item = quizQuestions[quizIdx];
+            const fb = document.getElementById('quiz-feedback');
+            fb.classList.remove('hidden', 'bg-green-100', 'text-green-900', 'bg-red-100', 'text-red-900');
+
+            item.options.forEach((_, i) => {
+                const btn = document.getElementById(`quiz-opt-${i}`);
+                btn.disabled = true;
+                if (i === item.ans) {
+                    btn.classList.remove('bg-white', 'border-woodLight');
+                    btn.classList.add('bg-green-600', 'text-white', 'border-green-800');
+                } else if (i === selected) {
+                    btn.classList.remove('bg-white', 'border-woodLight');
+                    btn.classList.add('bg-red-600', 'text-white', 'border-red-800');
+                }
+            });
+
+            if (selected === item.ans) {
+                quizCoins += 10;
+                quizCorrectCount++;
+                addCoins(10);
+                document.getElementById('quiz-coins-display').textContent = quizCoins;
+                fb.classList.add('bg-green-100', 'text-green-900', 'border-2', 'border-green-600');
+                fb.innerHTML = `<i class="fa-solid fa-circle-check text-green-700"></i> Benar (+10 Koin Emas)! <span class="font-normal block mt-1">${item.exp}</span>`;
+            } else {
+                fb.classList.add('bg-red-100', 'text-red-900', 'border-2', 'border-red-600');
+                fb.innerHTML = `<i class="fa-solid fa-circle-xmark text-red-700"></i> Kurang Tepat (0 Koin). <span class="font-normal block mt-1">${item.exp}</span>`;
+            }
+
+            const nextBtn = document.getElementById('quiz-next-btn');
+            nextBtn.innerHTML = quizIdx === quizQuestions.length - 1
+                ? 'Lihat Hasil Akhir <i class="fa-solid fa-trophy ml-1"></i>'
+                : 'Soal Berikutnya <i class="fa-solid fa-arrow-right ml-1"></i>';
+            nextBtn.classList.remove('hidden');
+        }
+
+        function nextQuizQuestion() {
+            quizIdx++;
+            if (quizIdx < quizQuestions.length) {
+                renderQuizQuestion();
+            } else {
+                appState.quizCompleted = true;
+                updateGlobalProgressUI();
+
+                document.getElementById('quiz-container').classList.add('hidden');
+                document.getElementById('quiz-result').classList.remove('hidden');
+                document.getElementById('final-quiz-score').textContent = `${quizCoins} Koin`;
+                document.getElementById('final-quiz-correct').textContent = `${quizCorrectCount} / 10`;
+
+                let predikat = "Kelasi Pemula";
+                if (quizCorrectCount >= 9) predikat = "Kapten Legendaris (Sangat Baik)";
+                else if (quizCorrectCount >= 7) predikat = "Navigator Ulung (Baik)";
+                else if (quizCorrectCount >= 5) predikat = "Penjelajah Muda (Cukup)";
+                document.getElementById('final-quiz-predicate').textContent = predikat;
+            }
+        }
+
+        function resetQuiz() {
+            quizIdx = 0;
+            quizCoins = 0;
+            quizCorrectCount = 0;
+            document.getElementById('quiz-coins-display').textContent = '0';
+            document.getElementById('quiz-container').classList.remove('hidden');
+            document.getElementById('quiz-result').classList.add('hidden');
+            renderQuizQuestion();
+        }
+
+        /* -----------------------------------------------------------------
+           5. E. DRAG AND DROP (PETA HARTA KARUN - 8 ISTILAH)
+           ----------------------------------------------------------------- */
+        const dragDropData = [
+            { id: 't1', term: "Enkripsi", desc: "Metode mengubah data asli menjadi kode rahasia agar tidak dapat dibaca pihak luar." },
+            { id: 't2', term: "Dekripsi", desc: "Proses mengembalikan pesan rahasia atau sandi menjadi teks asli yang terbaca." },
+            { id: 't3', term: "Cryptographic Key", desc: "Sekumpulan nilai matematika yang digunakan untuk mengunci dan membuka enkripsi." },
+            { id: 't4', term: "Caesar's Cipher", desc: "Metode enkripsi klasik dengan cara menggeser huruf alfabet berdasarkan jumlah langkah." },
+            { id: 't5', term: "Proteksi Data", desc: "Upaya menjaga keamanan informasi dan file dari risiko pencurian atau kerusakan." },
+            { id: 't6', term: "E-commerce", desc: "Transaksi pembelian dan penjualan secara online yang datanya dilindungi enkripsi." },
+            { id: 't7', term: "E-banking", desc: "Layanan perbankan digital yang memanfaatkan enkripsi untuk mengamankan transaksi keuangan." },
+            { id: 't8', term: "End-to-End Encryption", desc: "Sistem keamanan chat yang memastikan pesan hanya dapat dibaca pengirim dan penerima." }
+        ];
+
+        let ddMatched = 0;
+        let selectedTermForTap = null;
+
+        function initDragDrop() {
+            ddMatched = 0;
+            selectedTermForTap = null;
+            document.getElementById('dd-matched-count').textContent = '0';
+            document.getElementById('dd-complete-msg').classList.add('hidden');
+            const banner = document.getElementById('dd-feedback-banner');
+            banner.className = "mb-5 p-3.5 rounded-2xl bg-navyDark text-white font-bold text-center text-base border-2 border-oceanLight";
+            banner.textContent = "Seret istilah di sebelah kiri (atau ketuk istilah lalu ketuk kotak target) ke pengertian yang tepat! (+10 Koin per jawaban benar)";
+
+            // Acak urutan istilah dan acak urutan deskripsi pengertian
+            const shuffledTerms = [...dragDropData].sort(() => Math.random() - 0.5);
+            const shuffledDescs = [...dragDropData].sort(() => Math.random() - 0.5);
+
+            document.getElementById('drag-items-container').innerHTML = shuffledTerms.map(item => `
+                <div id="term-${item.id}" draggable="true" data-id="${item.id}"
+                     onclick="selectTermTap('${item.id}')"
+                     class="draggable-item bg-pirateGold hover:bg-yellow-400 text-pirateBlack font-extrabold px-3.5 py-2.5 rounded-xl shadow border-2 border-pirateBrown text-center text-sm sm:text-base">
+                    <i class="fa-solid fa-grip-vertical mr-1.5 opacity-60"></i>${item.term}
+                </div>
+            `).join('');
+
+            document.getElementById('drop-zones-container').innerHTML = shuffledDescs.map((zone, idx) => `
+                <div id="dropzone-${zone.id}" data-target="${zone.id}"
+                     onclick="dropTermTap('${zone.id}')"
+                     class="drop-zone bg-white/90 p-3.5 rounded-2xl border-2 border-dashed border-pirateBrown flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="flex items-start gap-2.5 flex-1">
+                        <span class="bg-seaBlue text-white font-bold w-7 h-7 rounded-lg flex items-center justify-center text-xs flex-shrink-0 mt-0.5">${idx + 1}</span>
+                        <p class="text-sm sm:text-base font-bold text-pirateBlack">${zone.desc}</p>
+                    </div>
+                    <div class="drop-slot w-full sm:w-48 h-10 rounded-xl bg-parchmentDark/80 border border-woodLight flex items-center justify-center text-xs font-extrabold text-pirateBrown flex-shrink-0">
+                        Kotak Misi #${idx + 1}
+                    </div>
+                </div>
+            `).join('');
+
+            // Pasang event listener Drag & Drop
+            document.querySelectorAll('#drag-items-container .draggable-item').forEach(el => {
+                el.addEventListener('dragstart', e => {
+                    e.dataTransfer.setData('text/plain', el.dataset.id);
+                });
+            });
+
+            document.querySelectorAll('#drop-zones-container .drop-zone').forEach(zone => {
+                zone.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    zone.classList.add('drag-over');
+                });
+                zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+                zone.addEventListener('drop', e => {
+                    e.preventDefault();
+                    zone.classList.remove('drag-over');
+                    const draggedId = e.dataTransfer.getData('text/plain');
+                    evaluateDragDrop(draggedId, zone.dataset.target);
+                });
+            });
+        }
+
+        function selectTermTap(id) {
+            document.querySelectorAll('#drag-items-container .draggable-item').forEach(el => el.classList.remove('ring-4', 'ring-white'));
+            selectedTermForTap = id;
+            const el = document.getElementById('term-' + id);
+            if (el) el.classList.add('ring-4', 'ring-white');
+        }
+
+        function dropTermTap(targetId) {
+            if (selectedTermForTap) {
+                evaluateDragDrop(selectedTermForTap, targetId);
+                selectedTermForTap = null;
+            }
+        }
+
+        function evaluateDragDrop(draggedId, targetId) {
+            const zone = document.getElementById('dropzone-' + targetId);
+            if (!zone || zone.dataset.done === 'true') return;
+
+            const banner = document.getElementById('dd-feedback-banner');
+            const termEl = document.getElementById('term-' + draggedId);
+
+            if (draggedId === targetId) {
+                const matchedObj = dragDropData.find(d => d.id === draggedId);
+                if (termEl) termEl.remove();
+
+                zone.dataset.done = 'true';
+                zone.classList.remove('border-dashed', 'bg-white/90');
+                zone.classList.add('bg-green-100', 'border-solid', 'border-green-600');
+                zone.querySelector('.drop-slot').innerHTML = `
+                    <span class="bg-green-700 text-white px-3 py-1.5 rounded-lg w-full text-center font-extrabold text-xs sm:text-sm">
+                        <i class="fa-solid fa-check"></i> ${matchedObj.term}
+                    </span>
+                `;
+
+                ddMatched++;
+                addCoins(10);
+                document.getElementById('dd-matched-count').textContent = ddMatched;
+                banner.className = "mb-5 p-3.5 rounded-2xl bg-green-800 text-goldShine font-bold text-center text-base border-2 border-pirateGold";
+                banner.innerHTML = `<i class="fa-solid fa-coins"></i> Cocok! "${matchedObj.term}" tepat! (+10 Koin Emas)`;
+
+                if (ddMatched === dragDropData.length) {
+                    appState.dragDropCompleted = true;
+                    updateGlobalProgressUI();
+                    document.getElementById('dd-complete-msg').classList.remove('hidden');
+                }
+            } else {
+                // Jawaban salah: objek kembali ke posisi semula & efek getar
+                if (termEl) termEl.classList.remove('ring-4', 'ring-white');
+                zone.classList.add('shake-error', 'border-red-600');
+                setTimeout(() => zone.classList.remove('shake-error', 'border-red-600'), 450);
+
+                banner.className = "mb-5 p-3.5 rounded-2xl bg-red-900 text-white font-bold text-center text-base border-2 border-red-400";
+                banner.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Belum cocok! Kartu kembali ke posisi semula, coba baca pengertiannya lagi!`;
+            }
+        }
+
+        /* -----------------------------------------------------------------
+           6. F. PIRATE CIPHER CHALLENGE (MODE ENKRIPSI & DEKRIPSI)
+           ----------------------------------------------------------------- */
+        const challengeBank = {
+            ENCRYPT: [
+                { word: "STRADA", shift: 2, hintExample: "Contoh geser 2 ke kanan: S -> T -> U, T -> U -> V" },
+                { word: "INFORMATIKA", shift: 3, hintExample: "Contoh geser 3 ke kanan: I -> J -> K -> L, N -> O -> P -> Q" },
+                { word: "SEKOLAH", shift: 1, hintExample: "Contoh geser 1 ke kanan: S -> T, E -> F, K -> L" },
+                { word: "DATA DIGITAL", shift: 2, hintExample: "Contoh geser 2 ke kanan: D -> E -> F, A -> B -> C (spasi tetap)" }
+            ],
+            DECRYPT: [
+                { word: "UVTCFC", shift: 2, hintExample: "Contoh geser 2 ke kiri: U -> T -> S, V -> U -> T" },
+                { word: "VWUDGD", shift: 3, hintExample: "Contoh geser 3 ke kiri: V -> U -> T -> S, W -> V -> U -> T" },
+                { word: "TFLPMBI", shift: 1, hintExample: "Contoh geser 1 ke kiri: T -> S, F -> E, L -> K" },
+                { word: "FCVC FKIKVCN", shift: 2, hintExample: "Contoh geser 2 ke kiri: F -> E -> D, C -> B -> A (spasi tetap)" }
+            ]
+        };
+
+        let chMode = 'ENCRYPT'; // 'ENCRYPT' atau 'DECRYPT'
+        let chIndex = 0;
+        let chAttempts = 3;
+        let chShipPosition = 0; // 0 sampai 4 langkah menuju pulau
+        let chStepResolved = false;
+
+        function setChallengeMode(mode) {
+            chMode = mode;
+            chIndex = 0;
+            chAttempts = 3;
+            chShipPosition = 0;
+            chStepResolved = false;
+
+            const btnEnc = document.getElementById('btn-mode-encrypt');
+            const btnDec = document.getElementById('btn-mode-decrypt');
+
+            if (mode === 'ENCRYPT') {
+                btnEnc.className = "px-4 py-2.5 rounded-xl font-extrabold text-sm sm:text-base bg-pirateGold text-pirateBlack border-2 border-pirateGold transition";
+                btnDec.className = "px-4 py-2.5 rounded-xl font-extrabold text-sm sm:text-base bg-navyDark text-white border-2 border-oceanLight hover:border-pirateGold transition";
+            } else {
+                btnDec.className = "px-4 py-2.5 rounded-xl font-extrabold text-sm sm:text-base bg-pirateGold text-pirateBlack border-2 border-pirateGold transition";
+                btnEnc.className = "px-4 py-2.5 rounded-xl font-extrabold text-sm sm:text-base bg-navyDark text-white border-2 border-oceanLight hover:border-pirateGold transition";
+            }
+
+            document.getElementById('challenge-active-box').classList.remove('hidden');
+            document.getElementById('challenge-victory-box').classList.add('hidden');
+            renderChallengeStep();
+        }
+
+        function renderChallengeStep() {
+            const list = challengeBank[chMode];
+            const current = list[chIndex];
+            chAttempts = 3;
+            chStepResolved = false;
+
+            document.getElementById('ch-user-input').value = '';
+            document.getElementById('ch-user-input').disabled = false;
+            document.getElementById('ch-feedback-box').classList.add('hidden');
+            document.getElementById('ch-next-container').classList.add('hidden');
+
+            document.getElementById('ch-word-display').textContent = current.word;
+            if (chMode === 'ENCRYPT') {
+                document.getElementById('ch-type-badge').textContent = "MODE ENKRIPSI (Ubah Teks Asli ke Teks Rahasia)";
+                document.getElementById('ch-source-label').textContent = "Teks Asli (Plaintext):";
+                document.getElementById('ch-shift-display').textContent = `Geser ${current.shift} langkah ke kanan`;
+            } else {
+                document.getElementById('ch-type-badge').textContent = "MODE DEKRIPSI (Kembalikan Teks Rahasia ke Teks Asli)";
+                document.getElementById('ch-source-label').textContent = "Teks Rahasia (Ciphertext):";
+                document.getElementById('ch-shift-display').textContent = `Geser ${current.shift} langkah ke kiri`;
+            }
+
+            updateChallengeHeartsAndShip();
+        }
+
+        function updateChallengeHeartsAndShip() {
+            // Render sisa kesempatan (maksimal 3)
+            const heartsEl = document.getElementById('ch-attempts-hearts');
+            let html = '';
+            for (let i = 0; i < 3; i++) {
+                html += i < chAttempts
+                    ? '<i class="fa-solid fa-heart text-red-600"></i>'
+                    : '<i class="fa-regular fa-heart text-gray-400"></i>';
+            }
+            heartsEl.innerHTML = html;
+
+            // Update posisi kapal (0% sampai 82% menuju pulau)
+            const shipPct = 4 + (chShipPosition * 19.5);
+            document.getElementById('ch-ship-marker').style.left = `${Math.min(82, shipPct)}%`;
+            document.getElementById('ch-step-text').textContent = chShipPosition;
+        }
+
+        function toggleChallengeHint() {
+            const current = challengeBank[chMode][chIndex];
+            const fb = document.getElementById('ch-feedback-box');
+            fb.classList.remove('hidden', 'bg-green-100', 'text-green-900', 'bg-red-100', 'text-red-900');
+            fb.classList.add('bg-sky-100', 'text-navyDark', 'border-2', 'border-seaBlue');
+            fb.innerHTML = `<i class="fa-solid fa-lightbulb text-amber-500"></i> <strong>Petunjuk Kapten:</strong> ${current.hintExample}`;
+        }
+
+        function verifyChallengeAnswer() {
+            if (chStepResolved) return;
+
+            const userRaw = document.getElementById('ch-user-input').value.trim().toUpperCase();
+            const current = challengeBank[chMode][chIndex];
+            const expectedAnswer = caesarCipher(current.word, current.shift, chMode === 'ENCRYPT' ? 'encrypt' : 'decrypt');
+
+            const fb = document.getElementById('ch-feedback-box');
+            fb.classList.remove('hidden', 'bg-green-100', 'text-green-900', 'bg-red-100', 'text-red-900', 'bg-sky-100', 'text-navyDark');
+
+            if (!userRaw) {
+                fb.classList.add('bg-sky-100', 'text-navyDark', 'border-2', 'border-seaBlue');
+                fb.innerHTML = `<i class="fa-solid fa-circle-info"></i> Silakan ketik jawaban sandimu terlebih dahulu!`;
+                return;
+            }
+
+            if (userRaw === expectedAnswer) {
+                // JAWABAN BENAR: +20 koin emas, kapal maju 1 langkah
+                chStepResolved = true;
+                document.getElementById('ch-user-input').disabled = true;
+                addCoins(20);
+                chShipPosition = Math.min(4, chShipPosition + 1);
+                updateChallengeHeartsAndShip();
+
+                fb.classList.add('bg-green-100', 'text-green-900', 'border-2', 'border-green-600');
+                fb.innerHTML = `<i class="fa-solid fa-circle-check text-green-700"></i> <strong>TEPAT SEKALI! (+20 Koin Emas)</strong> Kapal bajak laut melaju maju mendekati Pulau Harta Karun!`;
+                document.getElementById('ch-next-container').classList.remove('hidden');
+            } else {
+                // JAWABAN SALAH: -5 koin emas, kapal mundur 1 langkah, kesempatan berkurang
+                chAttempts--;
+                addCoins(-5);
+                chShipPosition = Math.max(0, chShipPosition - 1);
+                updateChallengeHeartsAndShip();
+
+                const box = document.getElementById('challenge-active-box');
+                box.classList.add('shake-error');
+                setTimeout(() => box.classList.remove('shake-error'), 450);
+
+                if (chAttempts > 0) {
+                    fb.classList.add('bg-red-100', 'text-red-900', 'border-2', 'border-red-600');
+                    fb.innerHTML = `
+                        <i class="fa-solid fa-triangle-exclamation text-red-700"></i>
+                        <strong>Jawaban Salah! (-5 Koin Emas & Kapal Mundur 1 Langkah)</strong><br>
+                        <span class="text-sm sm:text-base font-semibold">Petunjuk: ${current.hintExample} (Sisa kesempatan: ${chAttempts})</span>
+                    `;
+                } else {
+                    // Kesempatan habis: tampilkan jawaban benar & pembahasan
+                    chStepResolved = true;
+                    document.getElementById('ch-user-input').disabled = true;
+                    fb.classList.add('bg-red-100', 'text-red-900', 'border-2', 'border-red-600');
+                    fb.innerHTML = `
+                        <i class="fa-solid fa-skull-crossbones text-red-700"></i>
+                        <strong>Kesempatan Habis!</strong> Jawaban yang benar adalah: <span class="underline font-mono text-xl">${expectedAnswer}</span><br>
+                        <span class="text-sm sm:text-base font-normal">Pembahasan: Kata <strong>${current.word}</strong> digeser <strong>${current.shift} langkah ke ${chMode === 'ENCRYPT' ? 'kanan' : 'kiri'}</strong> menghasilkan <strong>${expectedAnswer}</strong>.</span>
+                    `;
+                    document.getElementById('ch-next-container').classList.remove('hidden');
+                }
+            }
+        }
+
+        function nextChallengeStep() {
+            chIndex++;
+            if (chIndex < challengeBank[chMode].length) {
+                renderChallengeStep();
+            } else {
+                // Seluruh tantangan pada mode ini selesai -> Peti Harta Karun Terbuka!
+                if (chMode === 'ENCRYPT') appState.challengeEncryptCompleted = true;
+                else appState.challengeDecryptCompleted = true;
+                updateGlobalProgressUI();
+
+                document.getElementById('challenge-active-box').classList.add('hidden');
+                document.getElementById('challenge-victory-box').classList.remove('hidden');
+            }
+        }
+
+        function resetCurrentChallengeMode() {
+            setChallengeMode(chMode);
+        }
+
+        function switchOppositeChallengeMode() {
+            setChallengeMode(chMode === 'ENCRYPT' ? 'DECRYPT' : 'ENCRYPT');
+        }
+
+        // Dukungan tombol Enter di input tantangan
+        document.getElementById('ch-user-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                verifyChallengeAnswer();
+            }
+        });
+
+        /* -----------------------------------------------------------------
+           INISIALISASI AWAL HALAMAN
+           ----------------------------------------------------------------- */
+        window.onload = function () {
+            renderObjectives();
+            renderQuizQuestion();
+            initDragDrop();
+            setChallengeMode('ENCRYPT');
+            updateGlobalProgressUI();
+        };
+    </script>
+</body>
+</html>
